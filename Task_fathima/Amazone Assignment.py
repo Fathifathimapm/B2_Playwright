@@ -341,74 +341,162 @@ def search_product(page, keyword):
 #         "test account and safe test data."
 #     )
 
-#
-# # Task 9 - Conditional Product Availability
-#
 
-# TASK 9: Conditional Product Availability
+#Task 9 – Conditional Execution Based on UI State
 
-def test_product_availability(amazon_page):
+# def test_product_availability(amazon_page):
+#     page = amazon_page
+#
+#     search_product(page, SEARCH_KEYWORD)
+#
+#     card = page.locator(
+#         "[data-component-type='s-search-result']"
+#     ).first
+#
+#     product_link = card.locator("a:has(h2)").first
+#     product_url = product_link.get_attribute("href")
+#
+#     assert product_url, "Product link not found"
+#
+#     if product_url.startswith("http"):
+#         page.goto(product_url)
+#     else:
+#         page.goto("https://www.amazon.in" + product_url)
+#
+#     product_title = page.locator("span#productTitle")
+#     expect(product_title).to_be_visible()
+#
+#     print("Product:", product_title.inner_text().strip())
+#
+#     add_to_cart = page.locator("#add-to-cart-button")
+#
+#     if add_to_cart.count() > 0 and add_to_cart.is_visible():
+#         if add_to_cart.is_enabled():
+#             print("Product can be added to cart")
+#
+#             add_to_cart.click()
+#
+#             print("Add to Cart step completed")
+#         else:
+#             pytest.skip("Product unavailable: Add to Cart is disabled")
+#     else:
+#         pytest.skip("Product unavailable: Add to Cart button is missing")
+
+# Task 10: Reuse Saved Authentication State
+
+# import os
+# import pytest
+# from playwright.sync_api import sync_playwright, expect
+#
+# def test_global_authentication():
+#     state_file = "auth_state.json"
+#
+#     if not os.path.exists(state_file):
+#         pytest.skip("Login required: auth_state.json not found")
+#
+#     with sync_playwright() as p:
+#         browser = p.chromium.launch(headless=False)
+#
+#         context = browser.new_context(
+#             storage_state=state_file
+#         )
+#
+#         page = context.new_page()
+#         page.goto("https://www.amazon.in/")
+#
+#         page.wait_for_load_state("domcontentloaded")
+#
+#         account = page.locator("#nav-link-accountList")
+#
+#         if account.count() > 0:
+#             account_text = account.inner_text()
+#
+#             if "sign in" in account_text.lower():
+#                 print("Session expired. Sign in again.")
+#             else:
+#                 print("Saved browser session loaded")
+#
+#         browser.close()
+
+
+# Task 11: Browser Session Reuse
+
+# import os
+# import pytest
+# from playwright.sync_api import sync_playwright
+#
+# def test_browser_session_reuse():
+#     state_file = "auth_state.json"
+#
+#     if not os.path.exists(state_file):
+#         pytest.skip("Saved session missing. Login and save state first.")
+#
+#     with sync_playwright() as p:
+#         browser = p.chromium.launch(headless=False)
+#
+#         context = browser.new_context(
+#             storage_state=state_file
+#         )
+#
+#         page = context.new_page()
+#         page.goto("https://www.amazon.in/")
+#
+#         page.wait_for_load_state("domcontentloaded")
+#
+#         account = page.locator("#nav-link-accountList")
+#
+#         if account.count() > 0:
+#             print("Account menu found")
+#             print("Check the account indicator to confirm session validity")
+#         else:
+#             print("Account menu not found")
+#
+#         browser.close()
+
+
+# Task 12: Amazon Mini Project
+
+def test_amazon_mini_project(amazon_page):
     page = amazon_page
 
-
+    # Search for product
     search_product(page, SEARCH_KEYWORD)
 
-
-    product_cards = page.locator(
+    # Select product
+    cards = page.locator(
         "[data-component-type='s-search-result']"
     )
 
     product_url = None
 
-    for i in range(product_cards.count()):
-        card = product_cards.nth(i)
-        product_link = card.locator("a:has(h2)").first
+    for i in range(cards.count()):
+        link = cards.nth(i).locator("a:has(h2)").first
+        href = link.get_attribute("href")
 
-        if product_link.count() > 0:
-            href = product_link.get_attribute("href")
+        if href and "/dp/" in href:
+            product_url = href
+            break
 
-            if href and "/dp/" in href:
-                product_url = href
-                break
+    assert product_url, "No valid product found"
 
-    assert product_url is not None, "No product URL found"
-
-
+    # Open product
     if product_url.startswith("http"):
         page.goto(product_url)
     else:
         page.goto("https://www.amazon.in" + product_url)
 
-    page.wait_for_load_state("domcontentloaded")
+    # Verify product title
+    title = page.locator("span#productTitle")
+    expect(title).to_be_visible()
 
+    print("Product:", title.inner_text().strip())
 
-    product_title = page.locator("span#productTitle")
-    expect(product_title).to_be_visible(timeout=15000)
+    # Check Add to Cart
+    button = page.locator("#add-to-cart-button")
 
-    print("Product:", product_title.inner_text().strip())
-
-    add_to_cart = page.locator("#add-to-cart-button")
-
-    if add_to_cart.count() > 0 and add_to_cart.is_visible():
-        if add_to_cart.is_enabled():
-            print("Add to Cart button is visible and enabled.")
-            print("Product appears available for adding to cart.")
-        else:
-            print("Add to Cart button is disabled.")
-            print("Product may be unavailable.")
+    if button.count() > 0 and button.is_visible() and button.is_enabled():
+        print("Add to Cart is available")
+        button.click()
+        print("Cart action completed")
     else:
-        print("Add to Cart button is not available.")
-        print("Product availability could not be confirmed.")
-
-    # Step 6: Check for availability-related messages
-    availability_message = page.locator(
-        "#availability"
-    )
-
-    if availability_message.count() > 0 and availability_message.is_visible():
-        message = availability_message.inner_text().strip()
-        print("Availability message:", message)
-    else:
-        print("No visible availability message found.")
-
-
+        pytest.skip("Cart validation skipped: product unavailable")
