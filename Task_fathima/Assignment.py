@@ -53,8 +53,8 @@ def test_smoke(page):
 @pytest.mark.regression
 def test_regression(page):
     page.goto("https://www.saucedemo.com/")
-    expect(page.locator("#user-name")).to_be_visible()
-    expect(page.locator("#password")).to_be_visible()
+    expect(page.locator("Fathima")).to_be_visible()
+    expect(page.locator("Fathima123")).to_be_visible()
 
 
 # Task 4 - Browser configuration and timeouts
@@ -99,15 +99,15 @@ def test_environment(page):
 # Task 7 - Read credentials from environment variables
 
 def test_login_using_environment_credentials(page):
-    username = os.getenv("TEST_USERNAME")
-    password = os.getenv("TEST_PASSWORD")
+    username = os.getenv("Fathima")
+    password = os.getenv("Fathi123")
 
     if not username or not password:
         pytest.skip("Set TEST_USERNAME and TEST_PASSWORD first")
 
     page.goto("https://www.saucedemo.com/")
-    page.locator("#user-name").fill(username)
-    page.locator("#password").fill(password)
+    page.locator("Fathima").fill(username)
+    page.locator("Fathi123").fill(password)
     page.locator("#login-button").click()
 
     expect(page).to_have_url(
@@ -123,8 +123,8 @@ def test_login_and_navigation(page):
     expect(page).to_have_title("Swag Labs")
     expect(page).to_have_url("https://www.saucedemo.com/")
 
-    page.locator("#user-name").fill("standard_user")
-    page.locator("#password").fill("secret_sauce")
+    page.locator("Fathima").fill("standard_user")
+    page.locator("Fathima123").fill("secret_sauce")
     page.locator("#login-button").click()
 
     expect(page.locator(".title")).to_have_text("Products")
@@ -145,12 +145,12 @@ def test_locator_strategies(page):
     page.goto("https://www.saucedemo.com/")
 
     # CSS selector
-    page.locator("#user-name").fill("standard_user")
+    page.locator("Fathima").fill("standard_user")
     expect(page.locator("#user-name")).to_have_value("standard_user")
 
     # XPath
     page.locator("//input[@id='password']").fill("secret_sauce")
-    expect(page.locator("#password")).to_have_value("secret_sauce")
+    expect(page.locator("Fathima123")).to_have_value("secret_sauce")
 
     # Visible text
     expect(page.get_by_text("Swag Labs")).to_be_visible()
