@@ -421,82 +421,83 @@ def search_product(page, keyword):
 
 # Task 11: Browser Session Reuse
 
-# import os
-# import pytest
-# from playwright.sync_api import sync_playwright
-#
-# def test_browser_session_reuse():
-#     state_file = "auth_state.json"
-#
-#     if not os.path.exists(state_file):
-#         pytest.skip("Saved session missing. Login and save state first.")
-#
-#     with sync_playwright() as p:
-#         browser = p.chromium.launch(headless=False)
-#
-#         context = browser.new_context(
-#             storage_state=state_file
-#         )
-#
-#         page = context.new_page()
-#         page.goto("https://www.amazon.in/")
-#
-#         page.wait_for_load_state("domcontentloaded")
-#
-#         account = page.locator("#nav-link-accountList")
-#
-#         if account.count() > 0:
-#             print("Account menu found")
-#             print("Check the account indicator to confirm session validity")
-#         else:
-#             print("Account menu not found")
-#
-#         browser.close()
+
+from pathlib import Path
+import pytest
+from playwright.sync_api import sync_playwright
+
+def test_browser_session_reuse():
+    state_file = Path(__file__).parent / "auth_state.json"
+
+    if not state_file.exists():
+        pytest.skip("Saved session missing. Login and save state first.")
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+
+        context = browser.new_context(
+            storage_state=str(state_file)
+        )
+
+        page = context.new_page()
+        page.goto("https://www.amazon.in/")
+        page.wait_for_load_state("domcontentloaded")
+
+        account = page.locator("#nav-link-accountList")
+
+        if account.count() > 0:
+            print("Account menu found")
+            print("Check the account indicator to confirm session validity")
+        else:
+            print("Account menu not found")
+
+        browser.close()
+
 
 
 # Task 12: Amazon Mini Project
 
-def test_amazon_mini_project(amazon_page):
-    page = amazon_page
-
-    # Search for product
-    search_product(page, SEARCH_KEYWORD)
-
-    # Select product
-    cards = page.locator(
-        "[data-component-type='s-search-result']"
-    )
-
-    product_url = None
-
-    for i in range(cards.count()):
-        link = cards.nth(i).locator("a:has(h2)").first
-        href = link.get_attribute("href")
-
-        if href and "/dp/" in href:
-            product_url = href
-            break
-
-    assert product_url, "No valid product found"
-
-    # Open product
-    if product_url.startswith("http"):
-        page.goto(product_url)
-    else:
-        page.goto("https://www.amazon.in" + product_url)
-
-    # Verify product title
-    title = page.locator("span#productTitle")
-    expect(title).to_be_visible()
-
-    print("Product:", title.inner_text().strip())
-
-    # Check Add to Cart
-    button = page.locator("#add-to-cart-button")
-
-    if button.count() > 0 and button.is_visible() and button.is_enabled():
-        print("Add to Cart is available")
-        button.click()
-        print("Cart action completed")
-    else:
-        pytest.skip("Cart validation skipped: product unavailable")
+# def test_amazon_mini_project(amazon_page):
+#     page = amazon_page
+#
+#     # Search for product
+#     search_product(page, SEARCH_KEYWORD)
+#
+#     # Select product
+#     cards = page.locator(
+#         "[data-component-type='s-search-result']"
+#     )
+#
+#     product_url = None
+#
+#     for i in range(cards.count()):
+#         link = cards.nth(i).locator("a:has(h2)").first
+#         href = link.get_attribute("href")
+#
+#         if href and "/dp/" in href:
+#             product_url = href
+#             break
+#
+#     assert product_url, "No valid product found"
+#
+#     # Open product
+#     if product_url.startswith("http"):
+#         page.goto(product_url)
+#     else:
+#         page.goto("https://www.amazon.in" + product_url)
+#
+#     # Verify product title
+#     title = page.locator("span#productTitle")
+#     expect(title).to_be_visible()
+#
+#     print("Product:", title.inner_text().strip())
+#
+#     # Check Add to Cart
+#     button = page.locator("#add-to-cart-button")
+#
+#     if button.count() > 0 and button.is_visible() and button.is_enabled():
+#         print("Add to Cart is available")
+#         button.click()
+#         print("Cart action completed")
+#     else:
+#         pytest.skip("Cart validation skipped: product unavailable")

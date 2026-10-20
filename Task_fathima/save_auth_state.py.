@@ -1,0 +1,19 @@
+
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+
+state_file = Path(__file__).parent / "auth_state.json"
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=False)
+    context = browser.new_context()
+    page = context.new_page()
+
+    page.goto("https://www.amazon.in/")
+
+    input("Complete your permitted login, then press Enter...")
+
+    context.storage_state(path=str(state_file))
+    print("Authentication state saved:", state_file)
+
+    browser.close()
